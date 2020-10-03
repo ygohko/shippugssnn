@@ -26,6 +26,8 @@ import math
 import pickle
 import sys
 
+import numpy as np
+
 enemy_rand = random.Random()
 enemy_rand.seed(123)
 effect_rand = random.Random()
@@ -996,7 +998,7 @@ class BossBatteryEnemy(BossPartEnemy):
                 yield None
             Shooting.scene.bullets.Append(Bullet.FromAngle(self.x,self.y,self.Search(Shooting.scene.player),5))
             yield None
- 
+
     def Idle(self):
         while True:
             yield None
@@ -1729,8 +1731,41 @@ class Joystick:
     def GetTrigger(self):
         return self.trigger
 
+class NeuralNetwork:
+    def __init__(self):
+        self.m1 = np.zeros((8,18))
+        self.m2 = np.zeros((18,18))
+        self.m3 = np.zeros((18,18))
+        self.m4 = np.zeros((18,4))
+
+    def Randomize(self):
+        shape = self.m1.shape
+        for i in range(shape[0]):
+            for j in range(shape[1]):
+                self.m1[i,j] = contestant_rand.random()
+        shape = self.m2.shape
+        for i in range(shape[0]):
+            for j in range(shape[1]):
+                self.m2[i,j] = contestant_rand.random()
+        shape = self.m3.shape
+        for i in range(shape[0]):
+            for j in range(shape[1]):
+                self.m3[i,j] = contestant_rand.random()
+        shape = self.m4.shape
+        for i in range(shape[0]):
+            for j in range(shape[1]):
+                self.m4[i,j] = contestant_rand.random()
+
+    def Infer(self,values):
+        input = np.array(values)
+        a_value = np.dot(input,self.m1)
+        b_value = np.dot(a_value,self.m2)
+        c_value = np.dot(b_value,self.m3)
+        output = np.dot(c_value,self.m4)
+        return output.tolist()
+
 class EmulatedJoystick(Joystick):
-    def __init__(self, shooting, targets):
+    def __init__(self,shooting,targets):
         super().__init__()
         self.position = -1
         self.shooting = shooting
@@ -1740,7 +1775,7 @@ class EmulatedJoystick(Joystick):
         self.position += 1
         self.old = self.pressed
         target = self.targets[self.position]
-        player_position = (self.shooting.scene.player.x, self.shooting.scene.player.y)
+        player_position = (self.shooting.scene.player.x,self.shooting.scene.player.y)
         self.pressed = 0
         if target[0] < player_position[0]:
             self.pressed |= Joystick.LEFT
@@ -1767,7 +1802,7 @@ class Contestant:
     def __init__(self):
         self.targets = []
         for i in range(4 * 60 * 60):
-            self.targets.append((contestant_rand.randrange(FIXED_WIDTH // 3), contestant_rand.randrange(FIXED_HEIGHT)))
+            self.targets.append((contestant_rand.randrange(FIXED_WIDTH // 3),contestant_rand.randrange(FIXED_HEIGHT)))
         self.score = 0
 
     def Clone(self):
@@ -1780,8 +1815,8 @@ class Contestant:
         for i in range(len(self.targets)):
             if contestant_rand.randrange(2) == 1:
                 if contestant_rand.randrange(100) == 99:
-                    self.targets[i] = (contestant_rand.randrange(FIXED_WIDTH), contestant_rand.randrange(FIXED_HEIGHT))
-                    contestant.targets[i] = (contestant_rand.randrange(FIXED_WIDTH), contestant_rand.randrange(FIXED_HEIGHT))
+                    self.targets[i] = (contestant_rand.randrange(FIXED_WIDTH),contestant_rand.randrange(FIXED_HEIGHT))
+                    contestant.targets[i] = (contestant_rand.randrange(FIXED_WIDTH),contestant_rand.randrange(FIXED_HEIGHT))
                 else:
                     value = self.targets[i]
                     self.targets[i] = contestant.targets[i]
