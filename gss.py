@@ -1861,7 +1861,7 @@ class Contestant:
         return contestant
 
     def Cross(self,contestant):
-        for i in range(len(self.targets)):
+        for i in range(len(self.genes)):
             if contestant_rand.randrange(2) == 1:
                 if contestant_rand.randrange(100) == 99:
                     self.genes[i] = contestant_rand.random()
