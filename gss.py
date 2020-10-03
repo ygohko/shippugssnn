@@ -1732,10 +1732,10 @@ class Joystick:
         return self.trigger
 
 class NeuralNetwork:
-    NEURON_COUNT = 8 * 18 + 18 * 18 + 18 * 18 + 18 *4
+    NEURON_COUNT = 16 * 18 + 18 * 18 + 18 * 18 + 18 *4
 
     def __init__(self):
-        self.m1 = np.zeros((8,18))
+        self.m1 = np.zeros((16,18))
         self.m2 = np.zeros((18,18))
         self.m3 = np.zeros((18,18))
         self.m4 = np.zeros((18,4))
@@ -1804,7 +1804,8 @@ class EmulatedJoystick(Joystick):
         self.old = self.pressed
         player = self.shooting.scene.player
         bullets = self.shooting.scene.bullets
-        values = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        enemies = self.shooting.scene.enemies
+        values = [0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]
         for bullet in bullets:
             delta = ((bullet.x - player.x) / 16384.0, (bullet.y - player.y) / 16384.0)
             distance = math.sqrt(delta[0] * delta[0] + delta[1] * delta[1])
@@ -1815,6 +1816,16 @@ class EmulatedJoystick(Joystick):
                 value = (100.0 - distance) / 100.0
             if values[index] < value:
                 values[index] = value
+        for enemy in enemies:
+            delta = ((enemy.x - player.x) / 16384.0, (enemy.y - player.y) / 16384.0)
+            distance = math.sqrt(delta[0] * delta[0] + delta[1] * delta[1])
+            angle = math.atan2(delta[1],  delta[0]) / (2 * math.pi) * 360.0 + 22.5
+            index = int(angle / 45.0) % 8
+            value = 0.0
+            if distance < 100.0:
+                value = (100.0 - distance) / 100.0
+            if values[index + 8] < value:
+                values[index + 8] = value
         inferred = self.neural_network.Infer(values)
         # print(values,inferred)
         self.pressed = 0
