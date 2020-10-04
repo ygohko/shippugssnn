@@ -1564,7 +1564,12 @@ class Status:
 
     def SetCompleted(self):
         self.completed = True
-        self.contestant_score = self.event_count / 16384.0 + self.score / 2.0
+        self.contestant_score = self.event_count / 16384.0 * 0.0 + self.score / 2.0
+        print(Shooting.scene.player.x, Shooting.scene.player.y)
+        if Shooting.scene.player.x <= Fixed(8):
+            self.contestant_score /= 10.0
+        if Shooting.scene.player.x >= Fixed(632):
+            self.contestant_score /= 10.0
 
     def GetCompleted(self):
         return self.completed
@@ -1732,10 +1737,10 @@ class Joystick:
         return self.trigger
 
 class NeuralNetwork:
-    NEURON_COUNT = 16 * 18 + 18 * 18 + 18 * 18 + 18 *4
+    NEURON_COUNT = 20 * 18 + 18 * 18 + 18 * 18 + 18 *4
 
     def __init__(self):
-        self.m1 = np.zeros((16,18))
+        self.m1 = np.zeros((20,18))
         self.m2 = np.zeros((18,18))
         self.m3 = np.zeros((18,18))
         self.m4 = np.zeros((18,4))
@@ -1805,7 +1810,7 @@ class EmulatedJoystick(Joystick):
         player = self.shooting.scene.player
         bullets = self.shooting.scene.bullets
         enemies = self.shooting.scene.enemies
-        values = [0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]
+        values = [0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]
         for bullet in bullets:
             delta = ((bullet.x - player.x) / 16384.0, (bullet.y - player.y) / 16384.0)
             distance = math.sqrt(delta[0] * delta[0] + delta[1] * delta[1])
@@ -1826,6 +1831,24 @@ class EmulatedJoystick(Joystick):
                 value = (100.0 - distance) / 100.0
             if values[index + 8] < value:
                 values[index + 8] = value
+        x = player.x / 16384.0
+        y = player.y / 16384.0
+        value = 0.0
+        if x < 100.0:
+            value = (100.0 - x) / 100.0
+        values[16] = value
+        value = 0.0
+        if x > (SCREEN_WIDTH - 100.0):
+            value = (x - (SCREEN_WIDTH - 100.0)) / 100.0
+        values[17] = value
+        value = 0.0
+        if y < 100.0:
+            value = (100.0 - y) / 100.0
+        values[18] = value
+        value = 0.0
+        if y > (SCREEN_HEIGHT - 100.0):
+            value = (y - (SCREEN_HEIGHT - 100.0)) / 100.0
+        values[19] = value
         inferred = self.neural_network.Infer(values)
         # print(values,inferred)
         self.pressed = 0
