@@ -1862,8 +1862,10 @@ class EmulatedJoystick(Joystick):
             value = (100.0 - x) / 100.0
         values[16] = value
         value = 0.0
-        if x > (SCREEN_WIDTH - 100.0):
-            value = (x - (SCREEN_WIDTH - 100.0)) / 100.0
+        if x > ((SCREEN_WIDTH / 2) - 100.0):
+            value = (x - ((SCREEN_WIDTH / 2) - 100.0)) / 100.0
+            if value > 1.0:
+                value = 1.0
         values[17] = value
         value = 0.0
         if y < 100.0:
