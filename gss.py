@@ -1853,8 +1853,22 @@ class EmulatedJoystick(Joystick):
             value = 0.0
             if distance < 100.0:
                 value = (100.0 - distance) / 100.0
-            if values[index + 8] < value:
-                values[index + 8] = value
+            if values[index] < value:
+                values[index] = value
+            if angle < 0.0:
+                index = int(angle / -15.0)
+                value = distance / 100.0
+                if value > 1.0:
+                    value = 1.0
+                if index < 4 and values[index + 8] < value:
+                    values[index + 8] = value
+            else:
+                index = int(angle / 15.0)
+                value = distance / 100.0
+                if value > 1.0:
+                    value = 1.0
+                if index < 4 and values[index + 12] < value:
+                    values[index + 12] = value
         x = player.x / 16384.0
         y = player.y / 16384.0
         value = 0.0
