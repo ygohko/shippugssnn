@@ -1743,13 +1743,13 @@ class Joystick:
         return self.trigger
 
 class NeuralNetwork:
-    NEURON_COUNT = 20 * 18 + 18 * 18 + 18 * 18 + 18 * 4
+    NEURON_COUNT = 18 * 20 + 18 * 18 + 18 * 18 + 4 * 18
 
     def __init__(self):
-        self.m1 = np.zeros((20,18))
+        self.m1 = np.zeros((18,20))
         self.m2 = np.zeros((18,18))
         self.m3 = np.zeros((18,18))
-        self.m4 = np.zeros((18,4))
+        self.m4 = np.zeros((4,18))
 
     def Load(self,genes):
         index = 0
@@ -1775,20 +1775,20 @@ class NeuralNetwork:
                 index += 1
 
     def Infer(self,values):
-        input = np.array(values)
+        input = np.array(values).reshape((20,1))
         # print("input: {}".format(input))
-        a_value = np.dot(input,self.m1)
+        a_value = np.dot(self.m1,input)
         a_value = np.maximum(a_value,0.0)
         # print("a_value: {}".format(a_value))
-        b_value = np.dot(a_value,self.m2)
+        b_value = np.dot(self.m2,a_value)
         b_value = np.maximum(b_value,0.0)
         # print("b_value: {}".format(b_value))
-        c_value = np.dot(b_value,self.m3)
+        c_value = np.dot(self.m3,b_value)
         c_value = np.maximum(c_value,0.0)
         # print("c_value: {}".format(c_value))
-        output = np.dot(c_value,self.m4)
+        output = np.dot(self.m4,c_value)
         # print("output: {}".format(output))
-        return output.tolist()
+        return output.reshape((4,)).tolist()
 
 class EmulatedJoystick(Joystick):
     THRESHOLD = 0.5
