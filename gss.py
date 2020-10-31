@@ -1932,7 +1932,7 @@ class Contestant:
 
     def Cross(self,contestant):
         for i in range(len(self.genes)):
-            if contestant_rand.random() <= 1.0 * 0.01:
+            if contestant_rand.random() <= 0.5 * 0.01:
                 self.genes[i] = contestant_rand.random() * 2.0 - 1.0
                 contestant.genes[i] = contestant_rand.random() * 2.0 - 1.0
             if contestant_rand.randrange(2) == 1:
