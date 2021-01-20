@@ -1571,7 +1571,7 @@ class Status:
 
     def SetCompleted(self):
         self.completed = True
-        self.contestant_score = (self.event_count / 16384.0 + self.score / 2.0 + contestant_rand.random() / 1000.0) * self.penalty
+        self.contestant_score = (self.event_count / 1677216.0 + self.score + contestant_rand.random() / 1000.0) * self.penalty
 
     def GetCompleted(self):
         return self.completed
@@ -1949,42 +1949,49 @@ class Contestant:
     def SetScore(self, score):
         self.score = score
 
+    @classmethod
     def GetAlternated(cls, contestants):
-        elite = None
-        elite_score = 0
+        elites = []
         scores = []
         for contestant in contestants:
             score = contestant.GetScore()
             scores.append(score)
-            if score > elite_score:
-                elite = contestant
-                elite_score = score
+        sorted_scores = sorted(scores, reverse=True)
         new_contestants = []
-        new_contestants.append(elite)
-        scores = sorted(scores, reverse=True)[1:5]
-        for contestant in contestants:
-            score = contestant.GetScore()
-            if score in scores:
-                a_elite = elite.Clone()
-                a_contestant = contestant.Clone()
-                a_contestant.Cross(a_elite)
-                new_contestants.append(a_elite)
-                new_contestants.append(a_contestant)
-        new_contestants.append(Contestant())
+        for i in range(2):
+            contestant = Contestant.GetFromScore(contestants,sorted_scores[i])
+            elites.append(contestant)
+            new_contestants.append(contestant)
+        for i in range(4):
+            score = sorted_scores[i + 2]
+            for j in range(2):
+                elite = elites[j].Clone()
+                contestant = Contestant.GetFromScore(contestants,score)
+                contestant.Cross(elite)
+                new_contestants.append(elite)
+                new_contestants.append(contestant)
+        for i in range(2):
+            new_contestants.append(Contestant())
         return new_contestants
-    GetAlternated = classmethod(GetAlternated)
 
+    @classmethod
     def Load(cls,filename):
         with open(filename,"rb") as file:
             saved = pickle.load(file)
         return saved["contestants"],saved["generation"]
-    Load = classmethod(Load)
 
+    @classmethod
     def Save(cls,contestants,generation,filename):
         saving = {"generation":generation,"contestants":contestants}
         with open(filename,"wb") as file:
             pickle.dump(saving,file)
-    Save = classmethod(Save)
+
+    @classmethod
+    def GetFromScore(cls,contestants,score):
+        for contestant in contestants:
+            if contestant.GetScore() == score:
+                return contestant
+        return None
 
 class Gss:
     screen_surface = None
@@ -2003,7 +2010,7 @@ class Gss:
         if contestants == None:
             self.generation = 1
             self.contestants = []
-            for i in range(10):
+            for i in range(20):
                 self.contestants.append(Contestant())
         else:
             self.generation = generation
@@ -2024,7 +2031,7 @@ class Gss:
             print("Generation: {}, Contestant: {}, Score: {}".format(self.generation, self.contestant_index, score))
             Gss.joystick = Joystick()
             self.contestant_index += 1
-            if self.contestant_index >= 10:
+            if self.contestant_index >= 20:
                 self.contestants = Contestant.GetAlternated(self.contestants)
                 self.generation += 1
                 Contestant.Save(self.contestants,self.generation,"gen{}.pickle".format(self.generation))
