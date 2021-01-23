@@ -75,6 +75,23 @@ def RandomEffectVector(length):
     y = int(float(y) * length / current_length)
     return (x,y)
 
+class Settings:
+    def __init__(self):
+        self.no_wait = False
+        self.silent = False
+
+    def GetNoWait(self):
+        return self.no_wait
+
+    def SetNoWait(self,no_wait):
+        self.no_wait = no_wait
+
+    def GetSilent(self):
+        return self.silent
+
+    def SetSilent(self,silent):
+        self.silent = silent
+
 class Sprite:
     def __init__(self,surface,offset_x,offset_y,width,height):
         self.surface = surface
@@ -232,7 +249,8 @@ class Player(Actor):
             synchro_shot_cnt = shot_cnt & 1
             if ((pressed & Joystick.A and shot_cnt == 0) or (pressed & Joystick.B and synchro_shot_cnt == 0)):
                 if Shooting.scene.beams.Append(Beam(self.x,self.y)) == True:
-                    Gss.data.beam_sound.play()
+                    if not Gss.settings.GetSilent():
+                        Gss.data.beam_sound.play()
             if self.nocol_cnt > 0:
                 self.nocol_cnt -= 1
             event_velocity = (ScreenInt(self.x) - SCREEN_WIDTH / 3) / 4
@@ -255,7 +273,8 @@ class Player(Actor):
 
     def AddDamage(self,damage):
         Shooting.scene.status.ResetMultilier()
-        Gss.data.explosion_large_sound.play()
+        if not Gss.settings.GetSilent():
+            Gss.data.explosion_large_sound.play()
         for i in range(10):
             velocity = RandomEffectVector(Fixed(effect_rand.randrange(8)))
             Shooting.scene.explosions.Append(PlayerExplosion(self.x,self.y,velocity[0],velocity[1]))
@@ -319,7 +338,8 @@ class Enemy(Actor):
             Shooting.scene.status.AddScore(100)
 
             # 死
-            Gss.data.explosion_small_sound.play()
+            if not Gss.settings.GetSilent():
+                Gss.data.explosion_small_sound.play()
             type = effect_rand.randrange(10)
             if type < 8:
                 velocity = RandomEffectVector(Fixed(effect_rand.randrange(8)) / 8)
@@ -531,7 +551,8 @@ class VerticalMissileEnemy(Enemy):
             angle = Radian(90)
         else:
             angle = Radian(270)
-        Gss.data.missile_sound.play()
+        if not Gss.settings.GetSilent():
+            Gss.data.missile_sound.play()
         Shooting.scene.enemies.Append(Missile(self.x,self.y,angle))
         yield None
         while True:
@@ -561,7 +582,8 @@ class StraightMissileEnemy(Enemy):
             self.y += self.velocity_y
             if self.velocity_x > 0 and shoot == False:
                 shoot = True
-                Gss.data.missile_sound.play()
+                if not Gss.settings.GetSilent():
+                    Gss.data.missile_sound.play()
                 Shooting.scene.enemies.Append(Missile(self.x,self.y,Radian(180)))
             yield None
 
@@ -602,14 +624,16 @@ class MiddleEnemy(Enemy):
             self.x += self.velocity_x
             self.y += self.velocity_y
             if effect_rand.randrange(16) == 0:
-                Gss.data.explosion_small_sound.play()
+                if not Gss.settings.GetSilent():
+                    Gss.data.explosion_small_sound.play()
             if effect_rand.randrange(8) == 0:
                 x = self.x + Fixed(effect_rand.randrange(64) - 32)
                 y = self.y + Fixed(effect_rand.randrange(64) - 32)
                 velocity = RandomEffectVector(Fixed(effect_rand.randrange(8)))
                 Shooting.scene.explosions.Append(Explosion(x,y,velocity[0],velocity[1]))
             yield None
-        Gss.data.explosion_sound.play()
+        if not Gss.settings.GetSilent():
+            Gss.data.explosion_sound.play()
         for i in range(8):
             velocity = RandomEffectVector(Fixed(effect_rand.randrange(8)))
             x = self.x + velocity[0] * 3
@@ -657,7 +681,8 @@ class MiddleMissileEnemy(MiddleEnemy):
             self.y += self.velocity_y
             cnt += 1
             if cnt > 180 and (cnt % 80) == 0:
-                Gss.data.missile_sound.play()
+                if not Gss.settings.GetSilent():
+                    Gss.data.missile_sound.play()
                 Shooting.scene.enemies.Append(Missile(self.x,self.y,Radian(240)))
                 Shooting.scene.enemies.Append(Missile(self.x,self.y,Radian(210)))
                 Shooting.scene.enemies.Append(Missile(self.x,self.y,Radian(150)))
@@ -827,14 +852,16 @@ class BossEnemy(Enemy):
             self.x += self.velocity_x
             self.y += self.velocity_y
             if effect_rand.randrange(16) == 0:
-                Gss.data.explosion_small_sound.play()
+                if not Gss.settings.GetSilent():
+                    Gss.data.explosion_small_sound.play()
             if effect_rand.randrange(3) == 0:
                 x = self.x + Fixed(effect_rand.randrange(128) - 64)
                 y = self.y + Fixed(effect_rand.randrange(128) - 64)
                 velocity = RandomEffectVector(Fixed(effect_rand.randrange(8)))
                 Shooting.scene.explosions.Append(Explosion(x,y,velocity[0],velocity[1]))
             yield None
-        Gss.data.explosion_sound.play()
+        if not Gss.settings.GetSilent():
+            Gss.data.explosion_sound.play()
         for i in range(64):
             velocity = RandomEffectVector(Fixed(effect_rand.randrange(24)))
             x = self.x + velocity[0] * 3
@@ -969,7 +996,8 @@ class BossPartEnemy(Enemy):
 
     def ToDestroy(self):
         if self.parent != None:
-            Gss.data.explosion_sound.play()
+            if not Gss.settings.GetSilent():
+                Gss.data.explosion_sound.play()
             for i in range(16):
                 velocity = RandomEffectVector(Fixed(effect_rand.randrange(12)))
                 Shooting.scene.explosions.Append(Explosion(self.x,self.y,velocity[0],velocity[1]))
@@ -980,7 +1008,8 @@ class BossPartEnemy(Enemy):
             self.parent.ToDamage(0,inc_velocity_y)
             self.parent.SplitChild(self)
             self.SplitFromBoss()
-        Gss.data.explosion_small_sound.play()
+        if not Gss.settings.GetSilent():
+            Gss.data.explosion_small_sound.play()
         Shooting.scene.explosions.Append(Explosion(self.x,self.y,self.velocity_x,self.velocity_y))
         Shooting.scene.enemies.Remove(self)
 
@@ -1030,7 +1059,8 @@ class BossMissileEnemy(BossPartEnemy):
         while True:
             for j in range(31):
                 yield None
-            Gss.data.missile_sound.play()
+            if not Gss.settings.GetSilent():
+                Gss.data.missile_sound.play()
             Shooting.scene.enemies.Append(Missile(self.x,self.y,Radian(180)))
             yield None
 
@@ -1997,9 +2027,10 @@ class Gss:
     screen_surface = None
     joystick = None
     data = None
+    settings = None
     best_lap_time = 59 * 60 * 60 + 59 * 60 + 59
 
-    def __init__(self,contestants,generation):
+    def __init__(self,contestants,generation,settings):
         pygame.init()
         Gss.screen_surface = pygame.display.set_mode((SCREEN_WIDTH,SCREEN_HEIGHT),pygame.HWSURFACE | pygame.DOUBLEBUF)# | pygame.FULLSCREEN)
         pygame.mouse.set_visible(1)
@@ -2007,6 +2038,7 @@ class Gss:
         pygame.joystick.init()
         Gss.joystick = Joystick()
         Gss.data = Data()
+        Gss.settings = settings
         if contestants == None:
             self.generation = 1
             self.contestants = []
@@ -2170,8 +2202,11 @@ class Title:
             Gss.data.font.DrawString("BEST LAP: %02d'%02d''%02d" % (lap_time_min,lap_time_sec,lap_time_under_sec),Gss.screen_surface,0,0)
             pygame.display.flip()
             ticks = pygame.time.get_ticks() - begin_ticks
-            if ticks < 16:
-                pygame.time.delay(16 - ticks)
+            frame_time = 16
+            if Gss.settings.GetNoWait():
+                frame_time = 1
+            if ticks < frame_time:
+                pygame.time.delay(frame_time - ticks)
         return state
 
     def Move(self):
@@ -2627,7 +2662,8 @@ class Shooting:
         self.gen = self.Move()
 
     def MainLoop(self):
-        pygame.mixer.music.play(-1)
+        if not Gss.settings.GetSilent():
+            pygame.mixer.music.play(-1)
         event_parser = EventParser(test_events)
 
         state = Shooting.STATE_CONTINUE
@@ -2685,9 +2721,13 @@ class Shooting:
             Shooting.scene.status.Draw(Gss.screen_surface)
             pygame.display.flip()
             ticks = pygame.time.get_ticks() - begin_ticks
-            if ticks < 16:
-                pygame.time.delay(16 - ticks)
-        pygame.mixer.music.stop()
+            frame_time = 16
+            if Gss.settings.GetNoWait():
+                frame_time = 1
+            if ticks < frame_time:
+                pygame.time.delay(frame_time - ticks)
+        if not Gss.settings.GetSilent():
+            pygame.mixer.music.stop()
         lap_time = Shooting.scene.status.GetLapTime()
         if Shooting.scene.status.GetCompleted() == True and lap_time < Gss.best_lap_time:
             Gss.best_lap_time = lap_time
@@ -2715,6 +2755,15 @@ class Shooting:
 if __name__ == "__main__":
     contestants = None
     generation = 0
-    if len(sys.argv) == 2:
-        contestants,generation = Contestant.Load(sys.argv[1])
-    Gss(contestants,generation).Main()
+    settings = Settings()
+    for argument in enumerate(sys.argv):
+        if argument[0] > 0:
+            if argument[1][0] == "-":
+                for character in argument[1][1:]:
+                    if character == "n":
+                        settings.SetNoWait(True)
+                    elif character == "s":
+                        settings.SetSilent(True)
+            else:
+                contestants,generation = Contestant.Load(argument[1])
+    Gss(contestants,generation,settings).Main()
