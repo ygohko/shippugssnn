@@ -1,17 +1,17 @@
 # -*- coding: utf-8 -*-
 
-# Copyright (c) 2005 - 2020 Yasuaki Gohko
-# 
+# Copyright (c) 2005 - 2021 Yasuaki Gohko
+#
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
 # to deal in the Software without restriction, including without limitation
 # the rights to use, copy, modify, merge, publish, distribute, sublicense,
 # and/or sell copies of the Software, and to permit persons to whom the
 # Software is furnished to do so, subject to the following conditions:
-# 
+#
 # The above copyright notice and this permission notice shall be included in
 # all copies or substantial portions of the Software.
-# 
+#
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 # FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
@@ -1862,9 +1862,9 @@ class EmulatedJoystick(Joystick):
         enemies = self.shooting.scene.enemies
         values = [0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]
         for bullet in bullets:
-            delta = ((bullet.x - player.x) / 16384.0, (bullet.y - player.y) / 16384.0)
+            delta = ((bullet.x - player.x) / 16384.0,(bullet.y - player.y) / 16384.0)
             distance = math.sqrt(delta[0] * delta[0] + delta[1] * delta[1])
-            angle = math.atan2(delta[1],  delta[0]) / (2.0 * math.pi) * 360.0 + 22.5
+            angle = math.atan2(delta[1],delta[0]) / (2.0 * math.pi) * 360.0 + 22.5
             index = int(angle / 45.0) % 8
             value = 0.0
             if distance < 100.0:
@@ -1872,9 +1872,9 @@ class EmulatedJoystick(Joystick):
             if values[index] < value:
                 values[index] = value
         for enemy in enemies:
-            delta = ((enemy.x - player.x) / 16384.0, (enemy.y - player.y) / 16384.0)
+            delta = ((enemy.x - player.x) / 16384.0,(enemy.y - player.y) / 16384.0)
             distance = math.sqrt(delta[0] * delta[0] + delta[1] * delta[1])
-            angle = math.atan2(delta[1],  delta[0]) / (2.0 * math.pi) * 360.0 + 22.5
+            angle = math.atan2(delta[1],delta[0]) / (2.0 * math.pi) * 360.0 + 22.5
             index = int(angle / 45.0) % 8
             value = 0.0
             if distance < 100.0:
@@ -1976,17 +1976,16 @@ class Contestant:
     def GetScore(self):
         return self.score
 
-    def SetScore(self, score):
+    def SetScore(self,score):
         self.score = score
 
-    @classmethod
-    def GetAlternated(cls, contestants):
+    def GetAlternated(cls,contestants):
         elites = []
         scores = []
         for contestant in contestants:
             score = contestant.GetScore()
             scores.append(score)
-        sorted_scores = sorted(scores, reverse=True)
+        sorted_scores = sorted(scores,reverse=True)
         new_contestants = []
         for i in range(2):
             contestant = Contestant.GetFromScore(contestants,sorted_scores[i])
@@ -2003,25 +2002,26 @@ class Contestant:
         for i in range(2):
             new_contestants.append(Contestant())
         return new_contestants
+    GetAlternated = classmethod(GetAlternated)
 
-    @classmethod
     def Load(cls,filename):
         with open(filename,"rb") as file:
             saved = pickle.load(file)
         return saved["contestants"],saved["generation"]
+    Load = classmethod(Load)
 
-    @classmethod
     def Save(cls,contestants,generation,filename):
         saving = {"generation":generation,"contestants":contestants}
         with open(filename,"wb") as file:
             pickle.dump(saving,file)
+    Save = classmethod(Save)
 
-    @classmethod
     def GetFromScore(cls,contestants,score):
         for contestant in contestants:
             if contestant.GetScore() == score:
                 return contestant
         return None
+    GetFromScore = classmethod(GetFromScore)
 
 class Gss:
     screen_surface = None
@@ -2060,7 +2060,7 @@ class Gss:
             shooting.MainLoop()
             score = shooting.scene.status.contestant_score
             self.contestants[self.contestant_index].SetScore(score)
-            print("Generation: {}, Contestant: {}, Score: {}".format(self.generation, self.contestant_index, score))
+            print("Generation: {}, Contestant: {}, Score: {}".format(self.generation,self.contestant_index,score))
             Gss.joystick = Joystick()
             self.contestant_index += 1
             if self.contestant_index >= 20:
