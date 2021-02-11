@@ -332,6 +332,7 @@ class Enemy(Actor):
 
     def AddDamage(self,damage):
         self.shield -= damage
+        Shooting.scene.status.AddScore(1)
         if self.shield <= 0:
             # スコア更新
             Shooting.scene.status.UpdateMultiplier(self.live_cnt)
@@ -656,6 +657,7 @@ class MiddleEnemy(Enemy):
 
     def AddDamage(self,damage):
         self.shield -= damage
+        Shooting.scene.status.AddScore(1)
         if self.shield <= 0:
             # スコア更新
             Shooting.scene.status.UpdateMultiplier(self.live_cnt)
@@ -919,6 +921,7 @@ class BossEnemy(Enemy):
 
     def AddDamage(self,damage):
         self.shield -= damage
+        Shooting.scene.status.AddScore(1)
         if self.shield <= 0:
             # スコア更新
             Shooting.scene.status.UpdateMultiplier(self.live_cnt)
@@ -986,6 +989,7 @@ class BossPartEnemy(Enemy):
 
     def AddDamage(self,damage):
         self.shield -= damage
+        Shooting.scene.status.AddScore(1)
         if self.shield <= 0:
             # スコア更新
             Shooting.scene.status.UpdateMultiplier(self.live_cnt)
