@@ -1773,17 +1773,19 @@ class Joystick:
         return self.trigger
 
 class NeuralNetwork:
-    GENE_COUNT = 18 * 20 + 18 + 18 * 18 + 18 + 18 * 18 + 18 + 4 * 18 + 4
+    INPUT_COUNT = 20
+    OUTPUT_COUNT = 4
+    GENE_COUNT = 18 * INPUT_COUNT + 18 + 18 * 18 + 18 + 18 * 18 + 18 + OUTPUT_COUNT * 18 + OUTPUT_COUNT
 
     def __init__(self):
-        self.w1 = np.zeros((18,20))
+        self.w1 = np.zeros((18,NeuralNetwork.INPUT_COUNT))
         self.b1 = np.zeros((18,1))
         self.w2 = np.zeros((18,18))
         self.b2 = np.zeros((18,1))
         self.w3 = np.zeros((18,18))
         self.b3 = np.zeros((18,1))
-        self.w4 = np.zeros((4,18))
-        self.b4 = np.zeros((4,1))
+        self.w4 = np.zeros((NeuralNetwork.OUTPUT_COUNT,18))
+        self.b4 = np.zeros((NeuralNetwork.OUTPUT_COUNT,1))
 
     def Load(self,genes):
         index = 0
@@ -1860,7 +1862,7 @@ class EmulatedJoystick(Joystick):
         player = self.shooting.scene.player
         bullets = self.shooting.scene.bullets
         enemies = self.shooting.scene.enemies
-        values = [0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]
+        values = [0.0] * NeuralNetwork.INPUT_COUNT
         for bullet in bullets:
             delta = ((bullet.x - player.x) / 16384.0,(bullet.y - player.y) / 16384.0)
             distance = math.sqrt(delta[0] * delta[0] + delta[1] * delta[1])
