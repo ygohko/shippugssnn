@@ -1773,7 +1773,7 @@ class Joystick:
         return self.trigger
 
 class NeuralNetwork:
-    INPUT_COUNT = 20
+    INPUT_COUNT = 28
     OUTPUT_COUNT = 4
     GENE_COUNT = 18 * INPUT_COUNT + 18 + 18 * 18 + 18 + 18 * 18 + 18 + OUTPUT_COUNT * 18 + OUTPUT_COUNT
 
@@ -1827,7 +1827,7 @@ class NeuralNetwork:
             index += 1
 
     def Infer(self,values):
-        input = np.array(values).reshape((20,1))
+        input = np.array(values).reshape((NeuralNetwork.INPUT_COUNT,1))
         # print("input: {}".format(input))
         a_value = np.dot(self.w1,input)
         a_value = np.add(a_value,self.b1)
@@ -1844,7 +1844,7 @@ class NeuralNetwork:
         output = np.dot(self.w4,c_value)
         output = np.add(output,self.b4)
         # print("output: {}".format(output))
-        return output.reshape((4,)).tolist()
+        return output.reshape((NeuralNetwork.OUTPUT_COUNT,)).tolist()
 
 class EmulatedJoystick(Joystick):
     THRESHOLD = 0.5
@@ -1862,6 +1862,7 @@ class EmulatedJoystick(Joystick):
         player = self.shooting.scene.player
         bullets = self.shooting.scene.bullets
         enemies = self.shooting.scene.enemies
+        explosions = self.shooting.scene.explosions
         values = [0.0] * NeuralNetwork.INPUT_COUNT
         for bullet in bullets:
             delta = ((bullet.x - player.x) / 16384.0,(bullet.y - player.y) / 16384.0)
@@ -1897,26 +1898,45 @@ class EmulatedJoystick(Joystick):
                     value = 1.0
                 if index < 4 and values[index + 12] < value:
                     values[index + 12] = value
+        for explosion in explosions:
+            if type(explosion) == BulletExplosion:
+                delta = ((explosion.x - player.x) / 16384.0,(explosion.y - player.y) / 16384.0)
+                distance = math.sqrt(delta[0] * delta[0] + delta[1] * delta[1])
+                angle = math.atan2(delta[1],delta[0]) / (2.0 * math.pi) * 360.0 + 22.5
+                if angle < 0.0:
+                    index = int(angle / -15.0)
+                    value = distance / 100.0
+                    if value > 1.0:
+                        value = 1.0
+                    if index < 4 and values[index + 16] < value:
+                        values[index + 16] = value
+                else:
+                    index = int(angle / 15.0)
+                    value = distance / 100.0
+                    if value > 1.0:
+                        value = 1.0
+                    if index < 4 and values[index + 20] < value:
+                        values[index + 20] = value
         x = player.x / 16384.0
         y = player.y / 16384.0
         value = 0.0
         if x < 100.0:
             value = (100.0 - x) / 100.0
-        values[16] = value
+        values[24] = value
         value = 0.0
         if x > ((SCREEN_WIDTH / 2) - 100.0):
             value = (x - ((SCREEN_WIDTH / 2) - 100.0)) / 100.0
             if value > 1.0:
                 value = 1.0
-        values[17] = value
+        values[25] = value
         value = 0.0
         if y < 100.0:
             value = (100.0 - y) / 100.0
-        values[18] = value
+        values[26] = value
         value = 0.0
         if y > (SCREEN_HEIGHT - 100.0):
             value = (y - (SCREEN_HEIGHT - 100.0)) / 100.0
-        values[19] = value
+        values[27] = value
         inferred = self.neural_network.Infer(values)
         # print(values,inferred)
         self.pressed = 0
