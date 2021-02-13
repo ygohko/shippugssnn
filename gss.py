@@ -240,8 +240,6 @@ class Player(Actor):
             old_x = self.x
             old_y = self.y
             self.x,self.y = self.collision.RoundToSceneLimit(self.x,self.y)
-            if self.x != old_x and self.y != old_y:
-                Shooting.scene.status.UpdatePenalty(0.1)
             if self.x != old_x and self.x > Fixed(320):
                 Shooting.scene.status.UpdatePenalty(0.1)
             shot_cnt += 1
@@ -1779,7 +1777,7 @@ class Joystick:
 class NeuralNetwork:
     INPUT_COUNT = 28
     OUTPUT_COUNT = 4
-    GENE_COUNT = 18 * INPUT_COUNT + 18 + 18 * 18 + 18 + 18 * 18 + 18 + OUTPUT_COUNT * 18 + OUTPUT_COUNT
+    GENE_COUNT = 18 * INPUT_COUNT + 18 + 18 * 18 + 18 + 18 * 18 + 18 + 18 * 18 + 18 + OUTPUT_COUNT * 18 + OUTPUT_COUNT
 
     def __init__(self):
         self.w1 = np.zeros((18,NeuralNetwork.INPUT_COUNT))
@@ -1788,8 +1786,10 @@ class NeuralNetwork:
         self.b2 = np.zeros((18,1))
         self.w3 = np.zeros((18,18))
         self.b3 = np.zeros((18,1))
-        self.w4 = np.zeros((NeuralNetwork.OUTPUT_COUNT,18))
-        self.b4 = np.zeros((NeuralNetwork.OUTPUT_COUNT,1))
+        self.w4 = np.zeros((18,18))
+        self.b4 = np.zeros((18,1))
+        self.w5 = np.zeros((NeuralNetwork.OUTPUT_COUNT,18))
+        self.b5 = np.zeros((NeuralNetwork.OUTPUT_COUNT,1))
 
     def Load(self,genes):
         index = 0
@@ -1829,6 +1829,15 @@ class NeuralNetwork:
         for i in range(shape[0]):
             self.b4[i,0] = genes[index]
             index += 1
+        shape = self.w5.shape
+        for i in range(shape[0]):
+            for j in range(shape[1]):
+                self.w5[i,j] = genes[index]
+                index += 1
+        shape = self.b5.shape
+        for i in range(shape[0]):
+            self.b5[i,0] = genes[index]
+            index += 1
 
     def Infer(self,values):
         input = np.array(values).reshape((NeuralNetwork.INPUT_COUNT,1))
@@ -1845,8 +1854,12 @@ class NeuralNetwork:
         c_value = np.add(c_value,self.b3)
         c_value = np.maximum(c_value,0.0)
         # print("c_value: {}".format(c_value))
-        output = np.dot(self.w4,c_value)
-        output = np.add(output,self.b4)
+        d_value = np.dot(self.w4,c_value)
+        d_value = np.add(d_value,self.b4)
+        d_value = np.maximum(d_value,0.0)
+        # print("d_value: {}".format(d_value))
+        output = np.dot(self.w5,d_value)
+        output = np.add(output,self.b5)
         # print("output: {}".format(output))
         return output.reshape((NeuralNetwork.OUTPUT_COUNT,)).tolist()
 
@@ -2021,7 +2034,7 @@ class Contestant:
             score = sorted_scores[i + 2]
             for j in range(2):
                 elite = elites[j].Clone()
-                contestant = Contestant.GetFromScore(contestants,score)
+                contestant = Contestant.GetFromScore(contestants,score).Clone()
                 contestant.Cross(elite)
                 new_contestants.append(elite)
                 new_contestants.append(contestant)
