@@ -1987,6 +1987,9 @@ class EmulatedJoystick(Joystick):
         return self.trigger
 
 class Contestant:
+    ALPHA = 0.2
+    MUTATION_RATE = 0.2
+
     def __init__(self):
         self.genes = []
         for i in range(NeuralNetwork.GENE_COUNT):
@@ -2001,13 +2004,28 @@ class Contestant:
 
     def Cross(self,contestant):
         for i in range(len(self.genes)):
-            if contestant_rand.random() <= 0.2 * 0.01:
+            if contestant_rand.random() <= Contestant.MUTATION_RATE * 0.01:
                 self.genes[i] = contestant_rand.random() * 2.0 - 1.0
                 contestant.genes[i] = contestant_rand.random() * 2.0 - 1.0
             if contestant_rand.randrange(2) == 1:
                 value = self.genes[i]
                 self.genes[i] = contestant.genes[i]
                 contestant.genes[i] = value
+
+    def CrossWithBCXAlpha(self,contestant):
+        for i in range(len(self.genes)):
+            if contestant_rand.random() <= Contestant.MUTATION_RATE * 0.01:
+                self.genes[i] = contestant_rand.random() * 2.0 - 1.0
+                contestant.genes[i] = contestant_rand.random() * 2.0 - 1.0
+            else:
+                min_value = min(self.genes[i], contestant.genes[i])
+                max_value = max(self.genes[i], contestant.genes[i])
+                diff = max_value - min_value
+                min_value -= diff * Contestant.ALPHA
+                diff += diff * Contestant.ALPHA * 2.0
+                ratio = contestant_rand.random()
+                self.genes[i] = min_value + diff * ratio
+                contestant.genes[i] = min_value + diff * (1.0 - ratio)
 
     def GetGenes(self):
         return self.genes
@@ -2036,10 +2054,21 @@ class Contestant:
                 elite = elites[j].Clone()
                 contestant = Contestant.GetFromScore(contestants,score).Clone()
                 contestant.Cross(elite)
-                new_contestants.append(elite)
                 new_contestants.append(contestant)
-        for i in range(2):
-            new_contestants.append(Contestant())
+                elite = elites[j].Clone()
+                contestant = Contestant.GetFromScore(contestants,score).Clone()
+                contestant.CrossWithBCXAlpha(elite)
+                new_contestants.append(contestant)
+        a_index = contestant_rand.randrange(len(contestants))
+        b_index = contestant_rand.randrange(len(contestants))
+        a_contestant = contestants[a_index].Clone()
+        b_contestant = contestants[b_index].Clone()
+        b_contestant.Cross(a_contestant)
+        new_contestants.append(b_contestant)
+        a_contestant = contestants[a_index].Clone()
+        b_contestant = contestants[b_index].Clone()
+        b_contestant.CrossWithBCXAlpha(a_contestant)
+        new_contestants.append(b_contestant)
         return new_contestants
     GetAlternated = classmethod(GetAlternated)
 
