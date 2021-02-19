@@ -1540,6 +1540,10 @@ class Data:
         self.beam_sound = pygame.mixer.Sound("beam.wav")
 
 class Status:
+    destruction_scale = 0.0
+    frame_scale = 0.0
+    event_scale = 0.0
+
     def __init__(self):
         self.frame_num = 0
         self.begin_ticks = pygame.time.get_ticks()
@@ -1548,9 +1552,13 @@ class Status:
         self.player_stock = 3
         self.event_count = Fixed(0)
         self.event_speed = Fixed(1)
+        self.frame_count = 0
         self.lap_time = 0
         self.completed = False
-        self.contestant_score = 0
+        self.contestant_score = 0.0
+        self.contestant_destruction_score = 0.0
+        self.contestant_frame_score = 0.0
+        self.contestant_event_score = 0.0
         self.penalty = 1.0
 
     def IncrementFrameNum(self):
@@ -1582,6 +1590,7 @@ class Status:
     def IncrementEventCount(self):
         previous_event_count = self.event_count
         self.event_count += self.event_speed
+        self.frame_count += 1
         return ScreenInt(self.event_count) - ScreenInt(previous_event_count)
 
     def AddEventSpeed(self,velocity):
@@ -1603,7 +1612,10 @@ class Status:
 
     def SetCompleted(self):
         self.completed = True
-        self.contestant_score = (self.event_count / 1677216.0 + self.score + contestant_rand.random() / 1000.0) * self.penalty
+        self.contestant_destruction_score = float(self.score)
+        self.contestant_frame_score = float(self.frame_count)
+        self.contestant_event_score = float(ScreenInt(self.event_count))
+        self.contestant_score = (self.contestant_destruction_score * Status.destruction_scale + self.contestant_frame_score * Status.frame_scale + self.contestant_event_score * Status.event_scale + contestant_rand.random()) * self.penalty
 
     def GetCompleted(self):
         return self.completed
@@ -1611,6 +1623,12 @@ class Status:
     def UpdatePenalty(self,penalty):
         if self.penalty > penalty:
             self.penalty = penalty
+
+    def UpdateScales(cls):
+        Status.destruction_scale = contestant_rand.random()
+        Status.frame_scale = contestant_rand.random()
+        Status.event_scale = contestant_rand.random()
+    UpdateScales = classmethod(UpdateScales)
 
     def Draw(self,screen_surface):
         lap_time_min = self.lap_time / (60 * 60)
@@ -1995,11 +2013,17 @@ class Contestant:
         for i in range(NeuralNetwork.GENE_COUNT):
             self.genes.append(contestant_rand.random() * 2.0 - 1.0)
         self.score = 0
+        self.destruction_score = 0
+        self.frame_score = 0
+        self.event_score = 0
 
     def Clone(self):
         contestant = Contestant()
         contestant.genes = self.genes[:]
         contestant.score = self.score
+        contestant.destruction_score = self.destruction_score
+        contestant.frame_score = self.frame_score
+        contestant.event_score = self.event_score
         return contestant
 
     def Cross(self,contestant):
@@ -2035,6 +2059,24 @@ class Contestant:
 
     def SetScore(self,score):
         self.score = score
+
+    def GetDestructionScore(self):
+        return self.destruction_score
+
+    def SetDestructionScore(self,destruction_score):
+        self.destruction_score = destruction_score
+
+    def GetFrameScore(self):
+        return self.frame_score
+
+    def SetFrameScore(self,frame_score):
+        self.frame_score = frame_score
+
+    def GetEventScore(self):
+        return self.event_score
+
+    def SetEventScore(self,event_score):
+        self.event_score = event_score
 
     def GetAlternated(cls,contestants):
         elites = []
@@ -2118,6 +2160,7 @@ class Gss:
         self.contestant_index = 0
 
     def Main(self):
+        Status.UpdateScales()
         while True:
             if Title().MainLoop() == Title.STATE_EXIT_QUIT:
                 return
@@ -2128,7 +2171,13 @@ class Gss:
             shooting.MainLoop()
             score = shooting.scene.status.contestant_score
             self.contestants[self.contestant_index].SetScore(score)
-            print("Generation: {}, Contestant: {}, Score: {}".format(self.generation,self.contestant_index,score))
+            destruction_score = shooting.scene.status.contestant_destruction_score
+            self.contestants[self.contestant_index].SetDestructionScore(destruction_score)
+            frame_score = shooting.scene.status.contestant_frame_score
+            self.contestants[self.contestant_index].SetFrameScore(frame_score)
+            event_score = shooting.scene.status.contestant_event_score
+            self.contestants[self.contestant_index].SetEventScore(event_score)
+            print("Generation: {}, Contestant: {}, Score: {}, Destruction score: {}, Frame score: {}, Event score: {}".format(self.generation,self.contestant_index,score,destruction_score,frame_score,event_score))
             Gss.joystick = Joystick()
             self.contestant_index += 1
             if self.contestant_index >= 20:
@@ -2136,6 +2185,8 @@ class Gss:
                 self.generation += 1
                 Contestant.Save(self.contestants,self.generation,"gen{}.pickle".format(self.generation))
                 self.contestant_index = 0
+                if (self.generation % 10) == 0:
+                    Status.UpdateScales()
 
 class LogoPart(Actor):
     def __init__(self,x,y):
