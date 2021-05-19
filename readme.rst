@@ -6,7 +6,7 @@ playing of time attack shooter game.
 
 How to execute
 ==============
-Before the execution install Python, Pygame and NumPy and then execute gss.py
+Before the execution install Python, Pygame and NumPy and then execute gss.py.
 
 gss.py outputs pickle files that includes gene information when altering
 generation. To continue execution, give this file as command line option.
