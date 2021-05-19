@@ -1,3 +1,4 @@
+=============
 SHIPPU GSS NN
 =============
 SHIPPU GSS is a experimental implemmentation of neural network based automated
@@ -33,6 +34,7 @@ History
 =======
 * Version 0.0.0 ... (not released yet)
 
+=============
 SHIPPU GSS NN
 =============
 SHIPPU GSSはタイムアタックシューティングをベースにしたニューラルネットワークに
