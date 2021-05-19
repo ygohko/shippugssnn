@@ -1,5 +1,41 @@
 SHIPPU GSS NN
 =============
+SHIPPU GSS is a experimental implemmentation of neural network based automated
+playing of time attack shooter game.
+
+How to execute
+==============
+Before the execution install Python, Pygame and NumPy and then execute gss.py
+
+gss.py outputs pickle file that includes gene information when altering
+generation. To continue execution, give this file as command line option.
+
+Command line
+------------
+Command line synopsis is below::
+
+    $ python3 gss.py [OPTION] [GENE FILE]
+
+Options
+-------
+* -n ... No wait
+* -s ... Silent
+
+How to control
+==============
+* Esc key ... Exit game / return to home
+
+License
+=======
+This software is distributed under the MIT License.
+
+History
+=======
+* Version 0.0.0 ... (not released yet)
+
+
+SHIPPU GSS NN
+=============
 SHIPPU GSSはタイムアタックシューティングをベースにしたニューラルネットワークに
 よる自動プレイの実験です。
 
