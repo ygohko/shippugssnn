@@ -1,7 +1,7 @@
 =============
 SHIPPU GSS NN
 =============
-SHIPPU GSS is a experimental implemmentation of neural network based automated
+SHIPPU GSS is a experimental implementation of neural network based automated
 playing of time attack shooter game.
 
 How to execute
